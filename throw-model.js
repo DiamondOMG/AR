@@ -163,8 +163,9 @@ AFRAME.registerComponent("throw-model", {
     ) {
       ring.setAttribute("material", "color: #00ff00");
       window.gameState.score += 1;
+      console.log(window.gameState.score);
     } else {
-      ring.setAttribute("material", "color: #ff0000");
+      ring.setAttribute("material", "color: #ff0000"); 
     }
 
     // เช็คว่าจบการเคลื่อนที่หรือยัง

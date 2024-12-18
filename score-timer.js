@@ -6,7 +6,7 @@ window.gameState = {
   score: 0
 };
 
-AFRAME.registerComponent("game-timer", {
+AFRAME.registerComponent("score-timer", {
   init: function () {
     // 1. UI สำหรับนับถอยหลัง 3 วิ (กลางจอ)
     this.countdownDisplay = document.createElement("div");
@@ -61,15 +61,40 @@ AFRAME.registerComponent("game-timer", {
             display: none;
         `;
 
+    // 4. UI สำหรับแสดงคะแนน (ใต้ timer)
+    this.scoreDisplay = document.createElement("div");
+    this.scoreDisplay.style.cssText = `
+        position: fixed;
+        top: 70px;
+        left: 20px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 10px 20px;
+        font-size: 20px;
+        font-family: Arial, sans-serif;
+        border-radius: 5px;
+        z-index: 1000;
+        text-align: center;
+        display: none;
+    `;
+
     document.body.appendChild(this.countdownDisplay);
     document.body.appendChild(this.gameTimerDisplay);
     document.body.appendChild(this.endGameDisplay);
+    document.body.appendChild(this.scoreDisplay);
 
     // อ้างอิงถึง marker
     this.marker = document.querySelector("a-marker");
 
     // เริ่มตรวจสอบ marker
     this.checkMarkerVisibility();
+
+    // อัพเดทคะแนนทุกครั้งที่มีการเปลี่ยนแปลง
+    this.updateScore();
+  },
+
+  updateScore: function() {
+    this.scoreDisplay.textContent = `คะแนน: ${window.gameState.score}`;
   },
 
   checkMarkerVisibility: function () {
@@ -105,6 +130,8 @@ AFRAME.registerComponent("game-timer", {
     window.gameState.timeRemaining = 60;
     window.gameState.score = 0;
     this.gameTimerDisplay.style.display = 'block';
+    this.scoreDisplay.style.display = 'block'; // แสดง UI คะแนน
+    this.updateScore(); // อัพเดทคะแนนตอนเริ่มเกม
     this.startGameTimer();
   },
 
@@ -112,15 +139,18 @@ AFRAME.registerComponent("game-timer", {
     const gameInterval = setInterval(() => {
       if (window.gameState.timeRemaining > 0) {
         this.gameTimerDisplay.textContent = `เวลา: ${window.gameState.timeRemaining} วินาที`;
+        this.updateScore(); // อัพเดทคะแนนทุกวินาที
         window.gameState.timeRemaining--;
       } else {
         this.gameTimerDisplay.style.display = 'none';
+        this.scoreDisplay.style.display = 'none'; // ซ่อน UI คะแนน
         this.endGameDisplay.style.display = 'block';
         this.endGameDisplay.textContent = `หมดเวลา!\nคะแนนของคุณ: ${window.gameState.score}`;
         setTimeout(() => {
           this.endGameDisplay.style.display = 'none';
           window.gameState.isGameStarted = false;
           window.gameState.isCountingDown = false;
+          window.gameState.score = 0; // รีเซ็ตคะแนนเมื่อจบเกม
         }, 2000);
         clearInterval(gameInterval);
       }
