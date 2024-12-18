@@ -62,8 +62,23 @@
             คัดลอก URL
         </button>
         
-        <a href="https://ar-five-virid.vercel.app/game.html" 
-           class="button">เปิดใน Chrome</a>
+        <button onclick="openInChrome()" class="button">เปิดใน Chrome</button>
     </div>
+
+    <script>
+        function openInChrome() {
+            const url = "https://ar-five-virid.vercel.app/game.html";
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isIOS = /iphone|ipad|ipod/.test(userAgent);
+            
+            if (isIOS) {
+                // สำหรับ iOS
+                window.location.href = `googlechromes://${url}`;
+            } else {
+                // สำหรับ Android
+                window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
+            }
+        }
+    </script>
 </body>
 </html>
