@@ -5,6 +5,7 @@ AFRAME.registerComponent("throw-model", {
   },
   init: function () {
     this.isThrown = false;
+    this.count = false;
     this.throwStartTime = 0;
     this.initialVelocity = 15;
     this.angle = 45;
@@ -101,6 +102,7 @@ AFRAME.registerComponent("throw-model", {
 
     // หยุดการแกว่งไปมา
     cancelAnimationFrame(this.swayAnimation);
+    this.count = true;
 
     // ใช้ค่า power จากตัวแปร Global
     const power = window.throwingPower.value;
@@ -143,7 +145,7 @@ AFRAME.registerComponent("throw-model", {
     // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
     const toleranceY = Math.abs(markerY * 0.15) + 0.3;
-    const toleranceX = 2;
+    const toleranceX = 0.5;
 
     const minZ = markerZ - toleranceZ;
     const maxZ = markerZ + toleranceZ;
@@ -159,11 +161,13 @@ AFRAME.registerComponent("throw-model", {
       y >= minY &&
       y <= maxY &&
       x >= minX &&
-      x <= maxX
+      x <= maxX &&
+      this.count
     ) {
       ring.setAttribute("material", "color: #00ff00");
-      window.gameState.score += 1;
-      console.log(window.gameState.score);
+      window.gameState.score += 3;
+      console.log(this.count);
+      this.count = false;
     } else {
       ring.setAttribute("material", "color: #ff0000"); 
     }
@@ -171,6 +175,7 @@ AFRAME.registerComponent("throw-model", {
     // เช็คว่าจบการเคลื่อนที่หรือยัง
     if (y < -10 || z < -30) {
       this.isThrown = false;
+      this.count = false;
       this.ufo.setAttribute("position", this.data.defaultPosition);
       ring.setAttribute("material", "color: #ff0000");
       cancelAnimationFrame(this.animationLoop);
