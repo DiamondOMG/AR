@@ -58,32 +58,12 @@
             https://ar-five-virid.vercel.app/game.html
         </div>
 
-        <button class="button copy-button" onclick="copyURL()">
+        <button class="button copy-button" onclick="navigator.clipboard.writeText(document.getElementById('urlText').innerText)">
             คัดลอก URL
         </button>
         
         <a href="googlechrome://navigate?url=https://ar-five-virid.vercel.app/game.html" 
            class="button">เปิดใน Chrome</a>
     </div>
-
-    <script>
-        function copyURL() {
-            const urlText = document.getElementById('urlText').innerText;
-            navigator.clipboard.writeText(urlText)
-                .then(() => alert('คัดลอก URL แล้ว'))
-                .catch(err => alert('ไม่สามารถคัดลอก URL ได้'));
-        }
-
-        // ตรวจสอบว่าเปิดใน Chrome หรือไม่
-        function isChrome() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            return /chrome/.test(userAgent) && !/edge/.test(userAgent) && !/opr/.test(userAgent);
-        }
-
-        // ถ้าเปิดใน Chrome อยู่แล้ว ให้ redirect ไปหน้าเกมทันที
-        if (isChrome()) {
-            window.location.href = 'game.html';
-        }
-    </script>
 </body>
 </html>
