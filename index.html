@@ -67,15 +67,20 @@
 
     <script>
         function openInChrome() {
-            const url = "https://ar-five-virid.vercel.app/game.html";
+            const url = "ar-five-virid.vercel.app/game.html";
             const userAgent = navigator.userAgent.toLowerCase();
             const isIOS = /iphone|ipad|ipod/.test(userAgent);
+            const isAndroid = /android/.test(userAgent);
+            const isDesktop = !isIOS && !isAndroid;
+            
+            if (isDesktop) {
+                alert("กรุณาเปิดลิงก์นี้บนมือถือเพื่อเล่นเกม AR");
+                return;
+            }
             
             if (isIOS) {
-                // สำหรับ iOS
                 window.location.href = `googlechromes://${url}`;
             } else {
-                // สำหรับ Android
                 window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
             }
         }
