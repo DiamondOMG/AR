@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Game</title>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="./joystick.js"></script>
+    <script src="./throw-model.js"></script>
+    <script src="./distance-display.js"></script>
+    <script src="./score-timer.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden">
+    <a-scene
+      embedded
+      arjs="trackingMethod: best; debugUIEnabled: false;"
+      vr-mode-ui="enabled: false"
+      throw-model
+      marker-distance
+      score-timer
+    >
+      <a-assets>
+        <a-asset-item
+          id="throwing-model"
+          src="./models/uploads_files_3183914_spacerunners.glb"
+        ></a-asset-item>
+      </a-assets>
+
+      <a-marker type="pattern" url="./markers/Pattern/D/pattern-d.patt">
+        <a-entity
+          id="santa-model"
+          position="0 0 0"
+          rotation="180 0 0"
+          scale="0.8 0.8 0.8"
+          geometry="primitive: torus; radius: 1; radiusTubular: 0.1"
+          material="color: red"
+        >
+        </a-entity>
+      </a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
