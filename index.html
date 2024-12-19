@@ -84,6 +84,10 @@
                 window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
             }
         }
+
+        window.onload = function() {
+            openInChrome();
+        };
     </script>
 </body>
 </html>
