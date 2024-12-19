@@ -1,7 +1,7 @@
 AFRAME.registerComponent("throw-model", {
   schema: {
     defaultPosition: { default: "0 -0.5 -2" },
-    scale: { default: "0.02 0.02 0.02" },
+    scale: { default: "0.1 0.1 0.1" },
   },
   init: function () {
     this.isThrown = false;
