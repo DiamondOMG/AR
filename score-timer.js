@@ -286,30 +286,51 @@ AFRAME.registerComponent("score-timer", {
       return;
     }
 
+    // เช็คค่า config
+    console.log("APP_CONFIG:", window.APP_CONFIG);
+    console.log("BASE_URL:", window.APP_CONFIG?.SUPABASE_BASE_URL);
+
+    const url = `${window.APP_CONFIG?.SUPABASE_BASE_URL}/rpc/upsert_score`;
+    console.log("Request URL:", url);
+
     try {
-      const response = await fetch(
-        `${window.APP_CONFIG.SUPABASE_BASE_URL}/rpc/upsert_score`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: window.APP_CONFIG.SUPABASE_KEY,
-            Authorization: `Bearer ${window.APP_CONFIG.SUPABASE_KEY}`,
-          },
-          body: JSON.stringify({
-            p_name: playerName,
-            p_score: window.gameState.score,
-          }),
-        }
-      );
+      // log request details
+      console.log("Request Headers:", {
+        "Content-Type": "application/json",
+        apikey: window.APP_CONFIG?.SUPABASE_KEY,
+        Authorization: `Bearer ${window.APP_CONFIG?.SUPABASE_KEY}`,
+      });
+
+      console.log("Request Body:", {
+        p_name: playerName,
+        p_score: window.gameState.score,
+      });
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: window.APP_CONFIG?.SUPABASE_KEY,
+          Authorization: `Bearer ${window.APP_CONFIG?.SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({
+          p_name: playerName,
+          p_score: window.gameState.score,
+        }),
+      });
+
+      console.log("Response Status:", response.status);
+      const responseData = await response.text();
+      console.log("Response Data:", responseData);
 
       if (response.ok) {
         alert("บันทึกคะแนนสำเร็จ!");
         this.closeSaveScore();
       } else {
-        throw new Error("Failed to save score");
+        throw new Error(`Failed to save score: ${response.status}`);
       }
     } catch (error) {
+      console.error("Error details:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกคะแนน");
     }
   },
