@@ -28,8 +28,8 @@
       } else {
         // ถ้าเป็น production ให้ใช้ค่าจาก Vercel ENV
         window.APP_CONFIG = {
-          SUPABASE_BASE_URL: "{{ SUPABASE_BASE_URL }}",
-          SUPABASE_KEY: "{{ SUPABASE_KEY }}",
+          SUPABASE_BASE_URL: "%SUPABASE_BASE_URL%", // ใช้ %VAR_NAME%
+          SUPABASE_KEY: "%SUPABASE_KEY%",
         };
       }
     </script>
