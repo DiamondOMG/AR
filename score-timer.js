@@ -286,26 +286,9 @@ AFRAME.registerComponent("score-timer", {
       return;
     }
 
-    // เช็คค่า config
-    console.log("APP_CONFIG:", window.APP_CONFIG);
-    console.log("BASE_URL:", window.APP_CONFIG?.SUPABASE_BASE_URL);
-
     const url = `${window.APP_CONFIG?.SUPABASE_BASE_URL}/rpc/upsert_score`;
-    console.log("Request URL:", url);
 
     try {
-      // log request details
-      console.log("Request Headers:", {
-        "Content-Type": "application/json",
-        apikey: window.APP_CONFIG?.SUPABASE_KEY,
-        Authorization: `Bearer ${window.APP_CONFIG?.SUPABASE_KEY}`,
-      });
-
-      console.log("Request Body:", {
-        p_name: playerName,
-        p_score: window.gameState.score,
-      });
-
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -319,18 +302,13 @@ AFRAME.registerComponent("score-timer", {
         }),
       });
 
-      console.log("Response Status:", response.status);
-      const responseData = await response.text();
-      console.log("Response Data:", responseData);
-
       if (response.ok) {
         alert("บันทึกคะแนนสำเร็จ!");
         this.closeSaveScore();
       } else {
-        throw new Error(`Failed to save score: ${response.status}`);
+        throw new Error("Failed to save score");
       }
     } catch (error) {
-      console.error("Error details:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกคะแนน");
     }
   },
