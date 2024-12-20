@@ -4,5 +4,8 @@ export default {
     rollupOptions: {
       input: ["index.html", "game.html"],
     },
+    assetsInclude: ["**/*.patt", "**/*.gltf", "**/*.bin", "**/*.glb"],
   },
+  base: "/",
+  publicDir: "public",
 };
