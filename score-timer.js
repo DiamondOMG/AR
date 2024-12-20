@@ -288,7 +288,7 @@ AFRAME.registerComponent("score-timer", {
 
     try {
       const response = await fetch(
-        `${window.APP_CONFIG.SUPABASE_URL}/upsert_score`,
+        `${window.APP_CONFIG.SUPABASE_BASE_URL}/rpc/upsert_score`,
         {
           method: "POST",
           headers: {

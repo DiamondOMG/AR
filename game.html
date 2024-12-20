@@ -16,20 +16,21 @@
     <script src="./distance-display.js"></script>
     <script src="./score-timer.js"></script>
     <script type="module">
-      const isDevelopment = window.location.hostname === 'localhost' || 
-                           window.location.hostname === '127.0.0.1';
-      
+      const isDevelopment =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+
       if (isDevelopment) {
-          // ถ้าเป็น local ให้ใช้ config จากไฟล์
-          import("./config.js").then(module => {
-              window.APP_CONFIG = module.default;
-          });
+        // ถ้าเป็น local ให้ใช้ config จากไฟล์
+        import("./config.js").then((module) => {
+          window.APP_CONFIG = module.default;
+        });
       } else {
-          // ถ้าเป็น production ให้ใช้ค่าจาก Vercel ENV
-          window.APP_CONFIG = {
-              SUPABASE_URL: '{{ SUPABASE_URL }}',
-              SUPABASE_KEY: '{{ SUPABASE_KEY }}'
-          };
+        // ถ้าเป็น production ให้ใช้ค่าจาก Vercel ENV
+        window.APP_CONFIG = {
+          SUPABASE_BASE_URL: "{{ SUPABASE_BASE_URL }}",
+          SUPABASE_KEY: "{{ SUPABASE_KEY }}",
+        };
       }
     </script>
     <style>
