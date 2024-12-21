@@ -5,6 +5,7 @@ export class GameUI {
 		this.createEndGameDisplay();
 		this.createScoreDisplay();
 		this.createSaveScoreDisplay();
+		this.createLeaderboardDisplay();
 
 		// เพิ่ม UI elements เข้า DOM
 		document.body.appendChild(this.countdownDisplay);
@@ -12,6 +13,7 @@ export class GameUI {
 		document.body.appendChild(this.endGameDisplay);
 		document.body.appendChild(this.scoreDisplay);
 		document.body.appendChild(this.saveScoreDisplay);
+		document.body.appendChild(this.leaderboardDisplay);
 	}
 
 	createCountdownDisplay() {
@@ -35,7 +37,7 @@ export class GameUI {
 	}
 
 	createGameTimerDisplay() {
-		// UI ��ำหรับแสดงเวลา 60 วิ (มุมซ้ายบน)
+		// UI สำหรับแสดงเวลา 60 วิ (มุมซ้ายบน)
 		this.gameTimerDisplay = document.createElement("div");
 		this.gameTimerDisplay.style.cssText = `
       position: fixed;
@@ -211,5 +213,59 @@ export class GameUI {
 		saveScoreButtons.appendChild(this.cancelSaveButton);
 		saveScoreButtons.appendChild(this.confirmSaveButton);
 		this.saveScoreDisplay.appendChild(saveScoreButtons);
+	}
+
+	createLeaderboardDisplay() {
+		this.leaderboardDisplay = document.createElement("div");
+		this.leaderboardDisplay.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 30px;
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+      border-radius: 10px;
+      z-index: 1002;
+      text-align: center;
+      display: none;
+      width: 80%;
+      max-width: 500px;
+      max-height: 80vh;
+    `;
+
+		// สร้าง header
+		const header = document.createElement("h2");
+		header.textContent = "ตารางคะแนนสูงสุด";
+		header.style.marginBottom = "20px";
+
+		// สร้าง container สำหรับตารางคะแนน
+		this.scoresContainer = document.createElement("div");
+		this.scoresContainer.style.cssText = `
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding: 0 10px;
+    `;
+
+		// สร้างปุ่มปิด
+		this.closeLeaderboardButton = document.createElement("button");
+		this.closeLeaderboardButton.textContent = "ปิด";
+		this.closeLeaderboardButton.style.cssText = `
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    `;
+
+		this.leaderboardDisplay.appendChild(header);
+		this.leaderboardDisplay.appendChild(this.scoresContainer);
+		this.leaderboardDisplay.appendChild(this.closeLeaderboardButton);
+		document.body.appendChild(this.leaderboardDisplay);
 	}
 }
