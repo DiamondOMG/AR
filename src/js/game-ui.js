@@ -158,6 +158,9 @@ export class GameUI {
 		this.feedbackButton = document.createElement("button");
 		this.feedbackButton.textContent = "ข้อเสนอแนะ";
 		this.feedbackButton.style.cssText = buttonStyles;
+		this.feedbackButton.addEventListener("click", () => {
+			this.showFeedbackForm();
+		});
 
 		this.buttonsContainer.appendChild(this.restartButton);
 		this.buttonsContainer.appendChild(this.saveButton);
@@ -267,5 +270,88 @@ export class GameUI {
 		this.leaderboardDisplay.appendChild(this.scoresContainer);
 		this.leaderboardDisplay.appendChild(this.closeLeaderboardButton);
 		document.body.appendChild(this.leaderboardDisplay);
+	}
+
+	showFeedbackForm() {
+		// สร้าง UI ข้อเสนอแนะ
+		console.log("5555");
+		if (!this.feedbackForm) {
+			this.feedbackForm = document.createElement("div");
+			this.feedbackForm.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.9);
+                color: white;
+                padding: 30px;
+                font-size: 20px;
+                font-family: Arial, sans-serif;
+                border-radius: 10px;
+                z-index: 1002;
+                text-align: center;
+                display: none;
+                min-width: 300px;
+            `;
+
+			// ส่วน input สำหรับข้อเสนอแนะ
+			const feedbackInput = document.createElement("textarea");
+			feedbackInput.placeholder = "กรุณากรอกข้อเสนอแนะของคุณ";
+			feedbackInput.style.cssText = `
+                width: 100%;
+                height: 100px;
+                padding: 10px;
+                margin: 10px 0;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+            `;
+			this.feedbackForm.appendChild(feedbackInput);
+
+			// ปุ่มส่งข้อเสนอแนะ
+			const sendButton = document.createElement("button");
+			sendButton.textContent = "ส่ง";
+			sendButton.style.cssText = `
+                padding: 10px 20px;
+                margin: 5px;
+                border: none;
+                border-radius: 5px;
+                background: #4CAF50;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            `;
+			sendButton.addEventListener("click", () => {
+				alert("ข้อเสนอแนะของคุณถูกส่งแล้ว!"); // แสดงผลชั่วคราว
+				this.feedbackForm.style.display = "none"; // ซ่อน UI
+			});
+
+			// ปุ่มยกเลิก
+			const cancelButton = document.createElement("button");
+			cancelButton.textContent = "ยกเลิก";
+			cancelButton.style.cssText = `
+                padding: 10px 20px;
+                margin: 5px;
+                border: none;
+                border-radius: 5px;
+                background: #F44336;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            `;
+			cancelButton.addEventListener("click", () => {
+				this.feedbackForm.style.display = "none";
+			});
+
+			// เพิ่มปุ่มในฟอร์ม
+			this.feedbackForm.appendChild(sendButton);
+			this.feedbackForm.appendChild(cancelButton);
+
+			// เพิ่ม UI ใน DOM
+			document.body.appendChild(this.feedbackForm);
+		}
+
+		// แสดง UI ข้อเสนอแนะ
+		this.feedbackForm.style.display = "block";
 	}
 }

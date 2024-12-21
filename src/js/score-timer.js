@@ -3,7 +3,7 @@ import { GameUI } from "./game-ui.js";
 // ตัวแปร Global สำหรับสถานะเกม
 window.gameState = {
 	isGameStarted: false,
-	timeRemaining: 60,
+	timeRemaining: 6,
 	isCountingDown: false,
 	score: 0,
 };
@@ -73,7 +73,7 @@ AFRAME.registerComponent("score-timer", {
 
 	startGame: function () {
 		window.gameState.isGameStarted = true;
-		window.gameState.timeRemaining = 60;
+		window.gameState.timeRemaining = 6;
 		window.gameState.score = 0;
 		this.gameTimerDisplay.style.display = "block";
 		this.scoreDisplay.style.display = "block"; // แสดง UI คะแนน
