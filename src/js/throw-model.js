@@ -1,7 +1,7 @@
 AFRAME.registerComponent("throw-model", {
   schema: {
     defaultPosition: { default: "0 -0.5 -2" },
-    scale: { default: "0.1 0.1 0.1" },
+    scale: { default: "0.2 0.2 0.2" },
   },
   init: function () {
     this.isThrown = false;
@@ -14,13 +14,13 @@ AFRAME.registerComponent("throw-model", {
     // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
     const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
     this.defaultX = x;
-    this.defaultY = y;
+    this.defaultY = y - 0.2; //!แก้ offset
     this.defaultZ = z;
 
     this.swayAmount = 0.5; // ระยะการเคลื่อนที่ซ้าย-ขวา
     this.swaySpeed = 0.001; // ความเร็วในการเคลื่อนที่
     this.lastUpdate = Date.now();
-    this.startSway();
+    //! this.startSway();
 
     //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
     const distanceDisplay = document.createElement("div");
@@ -52,7 +52,10 @@ AFRAME.registerComponent("throw-model", {
       this.ufo.setAttribute("id", "throwing-ufo");
       this.ufo.setAttribute("gltf-model", "#throwing-model");
       this.ufo.setAttribute("scale", this.data.scale);
-      this.ufo.setAttribute("position", this.data.defaultPosition);
+      this.ufo.setAttribute(
+        "position",
+        `${this.defaultX} ${this.defaultY} ${this.defaultZ}`
+      );
       this.ufo.setAttribute("animation", {
         property: "rotation",
         to: "0 360 0",
@@ -150,7 +153,7 @@ AFRAME.registerComponent("throw-model", {
 
     // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
-    const toleranceY = Math.abs(markerY * 0.15) + 0.2;
+    const toleranceY = Math.abs(markerY * 0.1);
     const toleranceX = 0.3;
 
     const minZ = markerZ - toleranceZ;
@@ -179,8 +182,8 @@ AFRAME.registerComponent("throw-model", {
       ring.setAttribute("material", "color: #00ff00");
       ring.setAttribute("animation", {
         property: "scale",
-        from: "0.8 0.8 0.8",
-        to: "1 1 1",
+        from: "0.6 0.6 0.6",
+        to: "0.8 0.8 0.8",
         dur: 500,
         easing: "easeOutQuad",
       });
@@ -189,8 +192,8 @@ AFRAME.registerComponent("throw-model", {
       setTimeout(() => {
         ring.setAttribute("animation", {
           property: "scale",
-          from: "1 1 1",
-          to: "0.8 0.8 0.8",
+          from: "0.8 0.8 0.8",
+          to: "0.6 0.6 0.6",
           dur: 500,
           easing: "easeInQuad",
         });
@@ -209,12 +212,15 @@ AFRAME.registerComponent("throw-model", {
     if (y < -10 || z < -30) {
       this.isThrown = false;
       this.count = false;
-      this.ufo.setAttribute("position", this.data.defaultPosition);
+      this.ufo.setAttribute(
+        "position",
+        `${this.defaultX} ${this.defaultY} ${this.defaultZ}`
+      );
       ring.setAttribute("material", "color: #ff0000");
       cancelAnimationFrame(this.animationLoop);
 
-      // เริ่มการแกว่งใหม่
-      this.startSway();
+      //! เริ่มการแกว่งใหม่
+      // this.startSway();
 
       // รีเซ็ตค่าแสดงผลโดยใช้ค่าจาก defaultPosition
       document.getElementById("z-distance").textContent =
