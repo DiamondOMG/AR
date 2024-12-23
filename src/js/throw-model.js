@@ -1,6 +1,6 @@
 AFRAME.registerComponent("throw-model", {
   schema: {
-    defaultPosition: { default: "0 -0.5 -2" },
+    defaultPosition: { default: "0 -0.66 -2" },
     scale: { default: "0.2 0.2 0.2" },
   },
   init: function () {
@@ -14,7 +14,7 @@ AFRAME.registerComponent("throw-model", {
     // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
     const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
     this.defaultX = x;
-    this.defaultY = y - 0.2; //!แก้ offset
+    this.defaultY = y + 0.16; //!ใช้เช็ค offset ที่เกินมา
     this.defaultZ = z;
 
     this.swayAmount = 0.5; // ระยะการเคลื่อนที่ซ้าย-ขวา
@@ -52,10 +52,7 @@ AFRAME.registerComponent("throw-model", {
       this.ufo.setAttribute("id", "throwing-ufo");
       this.ufo.setAttribute("gltf-model", "#throwing-model");
       this.ufo.setAttribute("scale", this.data.scale);
-      this.ufo.setAttribute(
-        "position",
-        `${this.defaultX} ${this.defaultY} ${this.defaultZ}`
-      );
+      this.ufo.setAttribute("position", this.data.defaultPosition);
       this.ufo.setAttribute("animation", {
         property: "rotation",
         to: "0 360 0",
@@ -153,7 +150,7 @@ AFRAME.registerComponent("throw-model", {
 
     // คำนวณช่วง tolerance สำหรับทุกแกน
     const toleranceZ = Math.abs(markerZ * 0.1);
-    const toleranceY = Math.abs(markerY * 0.1);
+    const toleranceY = Math.abs(markerY * 0.1) + 0.2;
     const toleranceX = 0.3;
 
     const minZ = markerZ - toleranceZ;
@@ -212,10 +209,7 @@ AFRAME.registerComponent("throw-model", {
     if (y < -10 || z < -30) {
       this.isThrown = false;
       this.count = false;
-      this.ufo.setAttribute(
-        "position",
-        `${this.defaultX} ${this.defaultY} ${this.defaultZ}`
-      );
+      this.ufo.setAttribute("position", this.data.defaultPosition);
       ring.setAttribute("material", "color: #ff0000");
       cancelAnimationFrame(this.animationLoop);
 
