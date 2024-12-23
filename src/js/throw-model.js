@@ -149,8 +149,8 @@ AFRAME.registerComponent("throw-model", {
     const markerX = window.markerDistance.x;
 
     // คำนวณช่วง tolerance สำหรับทุกแกน
-    const toleranceZ = Math.abs(markerZ * 0.05);
-    const toleranceY = Math.abs(markerY * 0.15) + 0.15;
+    const toleranceZ = Math.abs(markerZ * 0.1);
+    const toleranceY = Math.abs(markerY * 0.15) + 0.2;
     const toleranceX = 0.3;
 
     const minZ = markerZ - toleranceZ;
