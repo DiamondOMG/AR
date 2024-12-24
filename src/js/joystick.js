@@ -1,164 +1,187 @@
 // สร้างตัวแปร Global
 window.throwingPower = {
-	value: 0,
+  value: 0,
 };
 
 class Joystick {
-	constructor() {
-		this.isDragging = false;
-		this.startY = 0;
-		this.dragDistance = 0;
-		this.maxDrag = 100;
+  constructor() {
+    this.isPressing = false;
+    this.maxPower = 100;
+    this.minPower = 0;
+    this.decreasingPower = true; // flag เพื่อให้ตัวเลขวิ่งลงเมื่อกดแช่
+    this.power = 0;
 
-		// สร้างปุ่มโยนแบบซ่อน (สำหรับทริกเกอร์ event)
-		this.createHiddenButton();
-		// สร้าง UI จอยสติ๊ก
-		this.createJoystickUI();
-		// เพิ่ม event listeners
-		this.addEventListeners();
-	}
+    // สร้างปุ่มโยนแบบซ่อน (สำหรับทริกเกอร์ event)
+    this.createHiddenButton();
+    // สร้าง UI ปุ่ม
+    this.createButtonUI();
+    // สร้างแถบพลัง
+    this.createPowerBar();
+    // เพิ่ม event listeners
+    this.addEventListeners();
+  }
 
-	createHiddenButton() {
-		// สร้างปุ่มซ่อนสำหรับทริกเกอร์
-		const hiddenButton = document.createElement("button");
-		hiddenButton.id = "throwButton";
-		hiddenButton.style.display = "none";
-		document.body.appendChild(hiddenButton);
-	}
+  createHiddenButton() {
+    // สร้างปุ่มซ่อนสำหรับทริกเกอร์
+    const hiddenButton = document.createElement("button");
+    hiddenButton.id = "throwButton";
+    hiddenButton.style.display = "none";
+    document.body.appendChild(hiddenButton);
+  }
 
-	createJoystickUI() {
-		const container = document.createElement("div");
-		container.id = "joystick-container";
-		container.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 999;
-            text-align: center;
-        `;
+  createButtonUI() {
+    const button = document.createElement("button");
+    button.id = "joystick-button";
+    button.textContent = "Hold to Power";
+    button.style.cssText = `
+        background-color: rgba(255, 255, 255, 0.3); /* วงกลมสีใสขุ่น */
+        color: white;
+        width: 100px; /* กำหนดขนาดของปุ่มให้เป็นวงกลม */
+        height: 100px; /* กำหนดขนาดของปุ่มให้เป็นวงกลม */
+        font-size: 24px;
+        border-radius: 50%; /* ทำให้เป็นวงกลม */
+        border: none;
+        cursor: pointer;
+        position: fixed;
+        top: 80%; /* อยู่ตรงกลางจอในแนวตั้ง */
+        left: 50%; /* อยู่ตรงกลางจอในแนวนอน */
+        transform: translate(-50%, -50%); /* ทำให้ปุ่มอยู่ตรงกลาง */
+        z-index: 999;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
 
-		// สัวแสดงความแรง
-		const powerDisplay = document.createElement("div");
-		powerDisplay.id = "power-display";
-		powerDisplay.style.cssText = `
-            color: white;
-            font-size: 24px;
-            margin-bottom: 10px;
-            text-shadow: 1px 1px 2px black;
-        `;
-		powerDisplay.textContent = " 0%";
+    const container = document.createElement("div");
+    container.id = "button-container";
+    container.appendChild(button);
+    document.body.appendChild(container);
 
-		// แถบจอยสติ๊ก
-		const joystickArea = document.createElement("div");
-		joystickArea.id = "joystick-area";
-		joystickArea.style.cssText = `
-            width: 60px;
-            height: 150px;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            border-radius: 30px;
-            position: relative;
-            touch-action: none;
-        `;
+    // สร้างแสดงเปอร์เซ็นต์ที่มุมขวาล่าง
+    const powerDisplay = document.createElement("div");
+    powerDisplay.id = "power-display";
+    powerDisplay.style.cssText = `
+        position: fixed;
+        bottom: 20px; /* เลื่อนขึ้นจากขอบล่าง */
+        right: 20px; /* อยู่ที่มุมขวาล่าง */
+        color: white;
+        font-size: 24px;
+        text-shadow: 1px 1px 2px black;
+    `;
+    powerDisplay.textContent = "0%";
 
-		// สุ่มจอยสติ๊ก
-		const knob = document.createElement("div");
-		knob.id = "joystick-knob";
-		knob.style.cssText = `
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 25px;
-            position: absolute;
-            left: 5px;
-            top: 5px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #666;
-            user-select: none;
-        `;
-		knob.textContent = "↓";
+    document.body.appendChild(powerDisplay);
 
-		// ประกอบ UI
-		joystickArea.appendChild(knob);
-		container.appendChild(powerDisplay);
-		container.appendChild(joystickArea);
-		document.body.appendChild(container);
+    this.button = button;
+    this.powerDisplay = powerDisplay;
+  }
 
-		this.knob = knob;
-		this.powerDisplay = powerDisplay;
-		this.joystickArea = joystickArea;
-	}
+  createPowerBar() {
+    // สร้างแถบพลัง
+    const powerBar = document.createElement("div");
+    powerBar.id = "power-bar";
+    powerBar.style.cssText = `
+        position: fixed;
+        bottom: 100px; /* อยู่เหนือปุ่ม */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 200px;
+        background: linear-gradient(to top, red, yellow, green); /* ไล่สีจากแดงขึ้นไปเขียว */
+        border-radius: 15px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 999;
+    `;
 
-	addEventListeners() {
-		// Mouse Events
-		this.knob.addEventListener("mousedown", this.startDragging.bind(this));
-		document.addEventListener("mousemove", this.onDrag.bind(this));
-		document.addEventListener("mouseup", this.stopDragging.bind(this));
+    // สร้างพอยต์เตอร์
+    const pointer = document.createElement("div");
+    pointer.id = "pointer";
+    pointer.style.cssText = `
+        width: 20px;
+        height: 20px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 0; /* พอยต์เตอร์เริ่มต้นที่ล่างสุด */
+    `;
+    powerBar.appendChild(pointer);
+    document.body.appendChild(powerBar);
 
-		// Touch Events
-		this.knob.addEventListener("touchstart", this.startDragging.bind(this));
-		document.addEventListener("touchmove", this.onDrag.bind(this), {
-			passive: false,
-		});
-		document.addEventListener("touchend", this.stopDragging.bind(this));
-	}
+    this.powerBar = powerBar;
+    this.pointer = pointer;
+  }
 
-	startDragging(e) {
-		this.isDragging = true;
-		this.startY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-		this.knob.style.transition = "none";
-	}
+  addEventListeners() {
+    // Mouse Events
+    this.button.addEventListener("mousedown", this.startPressing.bind(this));
+    document.addEventListener("mouseup", this.stopPressing.bind(this));
 
-	onDrag(e) {
-		if (!this.isDragging) return;
+    // Touch Events
+    this.button.addEventListener("touchstart", this.startPressing.bind(this));
+    document.addEventListener("touchend", this.stopPressing.bind(this));
+  }
 
-		e.preventDefault();
-		const currentY = e.type.includes("touch")
-			? e.touches[0].clientY
-			: e.clientY;
-		this.dragDistance = Math.max(
-			0,
-			Math.min(currentY - this.startY, this.maxDrag)
-		);
+  startPressing(e) {
+    this.isPressing = true;
+    this.startTime = Date.now();
+    this.decreasingPower = true; // ตั้งค่าให้ลดลงเมื่อกดแช่
+    this.updatePower();
+  }
 
-		// อัพเดทตำแหน่งปุ่ม
-		const newY = Math.min(Math.max(5 + this.dragDistance, 5), 105);
-		this.knob.style.top = `${newY}px`;
+  stopPressing() {
+    if (this.isPressing) {
+      this.isPressing = false;
 
-		// แสดงค่าความแรง
-		const power = Math.round((this.dragDistance / this.maxDrag) * 100);
-		this.powerDisplay.textContent = `${power}%`;
+      // สริกเกอร์การโยน
+      const throwButton = document.getElementById("throwButton");
+      if (throwButton) {
+        throwButton.click();
+      }
 
-		// อัพเดทค่า Global
-		window.throwingPower.value = power;
-	}
+      // รีเซ็ตค่า
+      this.powerDisplay.textContent = "0%";
+      window.throwingPower.value = 0;
+    }
+  }
 
-	stopDragging() {
-		if (!this.isDragging) return;
-		this.isDragging = false;
+  updatePower() {
+    if (!this.isPressing) return;
 
-		// รีเซ็ตตำแหน่งปุ่ม
-		this.knob.style.transition = "top 0.2s";
-		this.knob.style.top = "5px";
+    // ถ้า power ลดลง จนถึง 0 ให้เริ่มเพิ่มใหม่
+    if (this.decreasingPower) {
+      if (this.power > this.minPower) {
+        this.power -= 1; // ลดค่า power
+      } else {
+        this.decreasingPower = false; // ถ้า power ถึง 0 ให้เริ่มเพิ่มใหม่
+      }
+    } else {
+      if (this.power < this.maxPower) {
+        this.power += 1; // เพิ่มค่า power
+      } else {
+        this.decreasingPower = true; // เมื่อ power ถึง 100 ให้กลับไปลดลง
+      }
+    }
 
-		// สริกเกอร์การโยน
-		const throwButton = document.getElementById("throwButton");
-		if (throwButton && this.dragDistance > 0) {
-			throwButton.click();
-		}
+    // อัพเดทค่าแสดงความแรง
+    this.powerDisplay.textContent = `${this.power}%`;
+    window.throwingPower.value = this.power;
 
-		// รีเซ็ตค่า
-		this.dragDistance = 0;
-		this.powerDisplay.textContent = "0%";
-	}
+    // อัพเดตตำแหน่งของ pointer ในแถบพลัง
+    const pointerPosition = (this.power / this.maxPower) * 100;
+    this.pointer.style.bottom = `${pointerPosition}%`;
+
+    // ถ้าปล่อยปุ่ม จะหยุดการอัพเดท
+    if (this.isPressing) {
+      requestAnimationFrame(this.updatePower.bind(this));
+    }
+  }
 }
 
 // สร้าง instance เมื่อโหลดหน้าเว็บ
 window.addEventListener("load", () => {
-	new Joystick();
+  new Joystick();
 });
+
