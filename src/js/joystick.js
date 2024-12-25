@@ -1,187 +1,350 @@
 // สร้างตัวแปร Global
 window.throwingPower = {
-  value: 0,
+	value: 0,
 };
 
 class Joystick {
-  constructor() {
-    this.isPressing = false;
-    this.maxPower = 100;
-    this.minPower = 0;
-    this.decreasingPower = true; // flag เพื่อให้ตัวเลขวิ่งลงเมื่อกดแช่
-    this.power = 0;
+	constructor() {
+		this.isPressing = false;
+		this.maxPower = 100;
+		this.minPower = 0;
+		this.decreasingPower = true;
+		this.power = 0;
 
-    // สร้างปุ่มโยนแบบซ่อน (สำหรับทริกเกอร์ event)
-    this.createHiddenButton();
-    // สร้าง UI ปุ่ม
-    this.createButtonUI();
-    // สร้างแถบพลัง
-    this.createPowerBar();
-    // เพิ่ม event listeners
-    this.addEventListeners();
-  }
+		this.createHiddenButton();
+		this.createButtonUI();
+		this.createPowerBar();
+		this.createPowerDisplay();
+		this.addEventListeners();
+	}
 
-  createHiddenButton() {
-    // สร้างปุ่มซ่อนสำหรับทริกเกอร์
-    const hiddenButton = document.createElement("button");
-    hiddenButton.id = "throwButton";
-    hiddenButton.style.display = "none";
-    document.body.appendChild(hiddenButton);
-  }
+	createHiddenButton() {
+		const hiddenButton = document.createElement("button");
+		hiddenButton.id = "throwButton";
+		hiddenButton.style.display = "none";
+		document.body.appendChild(hiddenButton);
+	}
 
-  createButtonUI() {
-    const button = document.createElement("button");
-    button.id = "joystick-button";
-    button.textContent = "Hold to Power";
-    button.style.cssText = `
-        background-color: rgba(255, 255, 255, 0.3); /* วงกลมสีใสขุ่น */
-        color: white;
-        width: 100px; /* กำหนดขนาดของปุ่มให้เป็นวงกลม */
-        height: 100px; /* กำหนดขนาดของปุ่มให้เป็นวงกลม */
-        font-size: 24px;
-        border-radius: 50%; /* ทำให้เป็นวงกลม */
-        border: none;
-        cursor: pointer;
+	createButtonUI() {
+		// สร้าง invisible touch area เต็มจอ
+		const touchArea = document.createElement("div");
+		touchArea.id = "touch-area";
+		touchArea.style.cssText = `
         position: fixed;
-        top: 80%; /* อยู่ตรงกลางจอในแนวตั้ง */
-        left: 50%; /* อยู่ตรงกลางจอในแนวนอน */
-        transform: translate(-50%, -50%); /* ทำให้ปุ่มอยู่ตรงกลาง */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 998;
+    `;
+
+		// สร้าง container สำหรับ effects
+		const effectsContainer = document.createElement("div");
+		effectsContainer.id = "effects-container";
+		effectsContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
         z-index: 999;
-        text-align: center;
+    `;
+
+		// เพิ่ม keyframes สำหรับ animations
+		const style = document.createElement("style");
+		style.textContent = `
+        @keyframes ripple {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        @keyframes glow {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0.9;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+        }
+    `;
+		document.head.appendChild(style);
+
+		const createTouchEffect = (x, y) => {
+			// สร้าง ripple effect ด้วยสีฟ้า-ม่วง
+			const ripple = document.createElement("div");
+			ripple.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(100,149,237,0.5) 0%, rgba(147,112,219,0.2) 50%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            animation: ripple 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        `;
+			effectsContainer.appendChild(ripple);
+			setTimeout(() => ripple.remove(), 1000);
+
+			// สร้าง glow effect ด้วยสีฟ้า-ม่วงซ้อนกัน
+			const glow = document.createElement("div");
+			glow.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, 
+                rgba(100,149,237,0.6) 0%, 
+                rgba(138,43,226,0.4) 40%, 
+                rgba(147,112,219,0.2) 60%, 
+                rgba(0,0,0,0) 80%);
+            border-radius: 50%;
+            filter: blur(5px);
+            animation: glow 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        `;
+			effectsContainer.appendChild(glow);
+			setTimeout(() => glow.remove(), 1500);
+
+			// สร้าง pulse effect ด้วยไล่สีฟ้า-ม่วง
+			const pulse = document.createElement("div");
+			pulse.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(100,149,237,0.8) 0%, rgba(147,112,219,0.8) 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(100,149,237,0.5), 0 0 40px rgba(147,112,219,0.3);
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        `;
+			effectsContainer.appendChild(pulse);
+
+			// เพิ่ม outer glow effect
+			const outerGlow = document.createElement("div");
+			outerGlow.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, 
+                rgba(100,149,237,0.3) 0%, 
+                rgba(147,112,219,0.2) 40%, 
+                rgba(138,43,226,0.1) 70%, 
+                rgba(0,0,0,0) 100%);
+            border-radius: 50%;
+            filter: blur(10px);
+            animation: glow 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        `;
+			effectsContainer.appendChild(outerGlow);
+			setTimeout(() => outerGlow.remove(), 2000);
+
+			return pulse;
+		};
+
+		let activeEffect = null;
+
+		// Event Listeners สำหรับ mouse
+		touchArea.addEventListener("mousedown", (e) => {
+			activeEffect = createTouchEffect(e.clientX, e.clientY);
+			this.startPressing(e);
+		});
+
+		document.addEventListener("mouseup", () => {
+			if (activeEffect) {
+				activeEffect.remove();
+				activeEffect = null;
+			}
+			this.stopPressing();
+		});
+
+		// Event Listeners สำหรับ touch
+		touchArea.addEventListener("touchstart", (e) => {
+			e.preventDefault();
+			const touch = e.touches[0];
+			activeEffect = createTouchEffect(touch.clientX, touch.clientY);
+			this.startPressing(e);
+		});
+
+		document.addEventListener("touchend", () => {
+			if (activeEffect) {
+				activeEffect.remove();
+				activeEffect = null;
+			}
+			this.stopPressing();
+		});
+
+		document.body.appendChild(touchArea);
+		document.body.appendChild(effectsContainer);
+
+		this.button = touchArea;
+	}
+
+	createPowerDisplay() {
+		// สร้างแสดงเปอร์เซ็นต์
+		const powerDisplay = document.createElement("div");
+		powerDisplay.id = "power-display";
+		powerDisplay.style.cssText = `
+    position: fixed;
+    bottom: 30%;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 999;
+    color: white; /* สีขาว */
+    font-size: 1.5rem; /* ตัวใหญ่ขึ้น */
+    font-family: 'Comic Sans MS', 'Arial', sans-serif; /* ฟอนต์น่ารักๆ */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* เพิ่มเงาให้ตัวหนังสือ */
+`;
+
+		powerDisplay.textContent = "0%";
+
+		document.body.appendChild(powerDisplay);
+		this.powerDisplay = powerDisplay;
+	}
+
+	createPowerBar() {
+		// สร้าง container สำหรับ power bar และ display
+		const powerContainer = document.createElement("div");
+		powerContainer.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        z-index: 999;
     `;
 
-    const container = document.createElement("div");
-    container.id = "button-container";
-    container.appendChild(button);
-    document.body.appendChild(container);
-
-    // สร้างแสดงเปอร์เซ็นต์ที่มุมขวาล่าง
-    const powerDisplay = document.createElement("div");
-    powerDisplay.id = "power-display";
-    powerDisplay.style.cssText = `
-        position: fixed;
-        bottom: 20px; /* เลื่อนขึ้นจากขอบล่าง */
-        right: 20px; /* อยู่ที่มุมขวาล่าง */
-        color: white;
-        font-size: 24px;
-        text-shadow: 1px 1px 2px black;
-    `;
-    powerDisplay.textContent = "0%";
-
-    document.body.appendChild(powerDisplay);
-
-    this.button = button;
-    this.powerDisplay = powerDisplay;
-  }
-
-  createPowerBar() {
-    // สร้างแถบพลัง
-    const powerBar = document.createElement("div");
-    powerBar.id = "power-bar";
-    powerBar.style.cssText = `
-        position: fixed;
-        bottom: 100px; /* อยู่เหนือปุ่ม */
-        left: 50%;
-        transform: translateX(-50%);
+		// สร้างแถบพลัง
+		const powerBar = document.createElement("div");
+		powerBar.id = "power-bar";
+		powerBar.style.cssText = `
         width: 30px;
         height: 200px;
-        background: linear-gradient(to top, red, yellow, green); /* ไล่สีจากแดงขึ้นไปเขียว */
+        background: linear-gradient(to top, red, yellow, green);
         border-radius: 15px;
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        z-index: 999;
+        border: 3px solid black;
+        box-sizing: border-box;
+        position: relative; /* เพิ่มเพื่อให้เป็นจุดอ้างอิงสำหรับ pointer */
     `;
 
-    // สร้างพอยต์เตอร์
-    const pointer = document.createElement("div");
-    pointer.id = "pointer";
-    pointer.style.cssText = `
-        width: 20px;
-        height: 20px;
+		// สร้างพอยต์เตอร์
+		const pointer = document.createElement("div");
+		pointer.id = "pointer";
+		pointer.style.cssText = `
+        width: 24px; /* ปรับให้พอดีกับความกว้างของ power bar */
+        height: 24px;
         background-color: white;
         border-radius: 50%;
         position: absolute;
-        bottom: 0; /* พอยต์เตอร์เริ่มต้นที่ล่างสุด */
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 2px solid black;
+        box-sizing: border-box;
     `;
-    powerBar.appendChild(pointer);
-    document.body.appendChild(powerBar);
 
-    this.powerBar = powerBar;
-    this.pointer = pointer;
-  }
+		powerBar.appendChild(pointer);
+		powerContainer.appendChild(powerBar);
+		document.body.appendChild(powerContainer);
 
-  addEventListeners() {
-    // Mouse Events
-    this.button.addEventListener("mousedown", this.startPressing.bind(this));
-    document.addEventListener("mouseup", this.stopPressing.bind(this));
+		this.powerBar = powerBar;
+		this.pointer = pointer;
+	}
 
-    // Touch Events
-    this.button.addEventListener("touchstart", this.startPressing.bind(this));
-    document.addEventListener("touchend", this.stopPressing.bind(this));
-  }
+	addEventListeners() {
+		this.button.addEventListener("mousedown", this.startPressing.bind(this));
+		document.addEventListener("mouseup", this.stopPressing.bind(this));
 
-  startPressing(e) {
-    this.isPressing = true;
-    this.startTime = Date.now();
-    this.decreasingPower = true; // ตั้งค่าให้ลดลงเมื่อกดแช่
-    this.updatePower();
-  }
+		this.button.addEventListener("touchstart", this.startPressing.bind(this));
+		document.addEventListener("touchend", this.stopPressing.bind(this));
+	}
 
-  stopPressing() {
-    if (this.isPressing) {
-      this.isPressing = false;
+	startPressing(e) {
+		this.isPressing = true;
+		this.startTime = Date.now();
+		this.decreasingPower = true;
+		this.updatePower();
+	}
 
-      // สริกเกอร์การโยน
-      const throwButton = document.getElementById("throwButton");
-      if (throwButton) {
-        throwButton.click();
-      }
+	stopPressing() {
+		if (this.isPressing) {
+			this.isPressing = false;
 
-      // รีเซ็ตค่า
-      this.powerDisplay.textContent = "0%";
-      window.throwingPower.value = 0;
-    }
-  }
+			const throwButton = document.getElementById("throwButton");
+			if (throwButton) {
+				throwButton.click();
+			}
 
-  updatePower() {
-    if (!this.isPressing) return;
+			// เพิ่มการรีเซ็ตค่ากลับมา
+			this.power = 0;
+			this.powerDisplay.textContent = "0%";
+			window.throwingPower.value = 0;
+			this.pointer.style.bottom = "0px";
+		}
+	}
 
-    // ถ้า power ลดลง จนถึง 0 ให้เริ่มเพิ่มใหม่
-    if (this.decreasingPower) {
-      if (this.power > this.minPower) {
-        this.power -= 1; // ลดค่า power
-      } else {
-        this.decreasingPower = false; // ถ้า power ถึง 0 ให้เริ่มเพิ่มใหม่
-      }
-    } else {
-      if (this.power < this.maxPower) {
-        this.power += 1; // เพิ่มค่า power
-      } else {
-        this.decreasingPower = true; // เมื่อ power ถึง 100 ให้กลับไปลดลง
-      }
-    }
+	updatePower() {
+		if (!this.isPressing) return;
 
-    // อัพเดทค่าแสดงความแรง
-    this.powerDisplay.textContent = `${this.power}%`;
-    window.throwingPower.value = this.power;
+		if (this.decreasingPower) {
+			if (this.power > this.minPower) {
+				this.power -= 0.2;
+			} else {
+				this.decreasingPower = false;
+			}
+		} else {
+			if (this.power < this.maxPower) {
+				this.power += 0.2;
+			} else {
+				this.decreasingPower = true;
+			}
+		}
 
-    // อัพเดตตำแหน่งของ pointer ในแถบพลัง
-    const pointerPosition = (this.power / this.maxPower) * 100;
-    this.pointer.style.bottom = `${pointerPosition}%`;
+		this.powerDisplay.textContent = `${Math.round(this.power)}%`;
+		window.throwingPower.value = this.power;
 
-    // ถ้าปล่อยปุ่ม จะหยุดการอัพเดท
-    if (this.isPressing) {
-      requestAnimationFrame(this.updatePower.bind(this));
-    }
-  }
+		// คำนวณตำแหน่งของ pointer ภายในขอบเขตของ power bar
+		const barHeight = this.powerBar.clientHeight - this.pointer.clientHeight;
+		const pointerPosition = (this.power / this.maxPower) * barHeight;
+		this.pointer.style.bottom = `${pointerPosition}px`;
+
+		if (this.isPressing) {
+			requestAnimationFrame(this.updatePower.bind(this));
+		}
+	}
 }
 
-// สร้าง instance เมื่อโหลดหน้าเว็บ
 window.addEventListener("load", () => {
-  new Joystick();
+	new Joystick();
 });
-
