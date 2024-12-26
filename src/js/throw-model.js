@@ -1,30 +1,29 @@
 AFRAME.registerComponent("throw-model", {
-  schema: {
-    defaultPosition: { default: "0 -0.66 -2" },
-    scale: { default: "0.2 0.2 0.2" },
-  },
-  init: function () {
-    this.isThrown = false;
-    this.count = false;
-    this.throwStartTime = 0;
-    this.initialVelocity = 15;
-    this.angle = 45;
-    this.gravity = 9.8;
+	schema: {
+		defaultPosition: { default: "0 -0.66 -2" },
+		scale: { default: "0.2 0.2 0.2" },
+	},
+	init: function () {
+		this.isThrown = false;
+		this.count = false;
+		this.throwStartTime = 0;
+		this.initialVelocity = 15;
+		this.angle = 45;
+		this.gravity = 9.8;
 
-    // แยกค่าพิกัดเริ่มต้นจาก defaultPosition
-    const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
-    this.defaultX = x;
-    this.defaultY = y + 0.16; //!ใช้เช็ค offset ที่เกินมา
-    this.defaultZ = z;
+		// แยกค่าพิกัดเริ่มต้นจาก defaultPosition
+		const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
+		this.defaultX = x;
+		this.defaultY = y + 0.16; //!ใช้เช็ค offset ที่เกินมา
+		this.defaultZ = z;
 
-    this.swayAmount = 0.5; // ระยะการเคลื่อนที่ซ้าย-ขวา
-    this.swaySpeed = 0.001; // ความเร็วในการเคลื่อนที่
-    this.lastUpdate = Date.now();
-    //! this.startSway();
+		this.swayAmount = 0.5;
+		this.swaySpeed = 0.001;
+		this.lastUpdate = Date.now();
 
-    //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
-    const distanceDisplay = document.createElement("div");
-    distanceDisplay.style.cssText = `
+		//! สร้าง UI สำหรับแสดงค่าพิกัด
+		const distanceDisplay = document.createElement("div");
+		distanceDisplay.style.cssText = `
       position: fixed;
       top: 10px;
       right: 10px;
@@ -35,196 +34,157 @@ AFRAME.registerComponent("throw-model", {
       border-radius: 5px;
       font-family: Arial, sans-serif;
     `;
-    distanceDisplay.innerHTML = `
+		distanceDisplay.innerHTML = `
       <div>X: <span id="x-distance">${this.defaultX}</span> เมตร</div>
       <div>Y: <span id="y-distance">${this.defaultY}</span> เมตร</div>
       <div>Z: <span id="z-distance">${this.defaultZ}</span> เมตร</div>
     `;
-    document.body.appendChild(distanceDisplay);
-    //! สร้าง UI สำหรับแสดงค่าพิกัด ----------------
+		document.body.appendChild(distanceDisplay);
 
-    this.el.addEventListener("loaded", () => {
-      // สร้าง UFO entity
-      const scene = document.querySelector("a-scene");
-      this.ufo = document.createElement("a-entity");
+		// ตั้งค่าคุณสมบัติของ entity
+		this.el.setAttribute("gltf-model", "#throwing-model");
+		this.el.setAttribute("scale", this.data.scale);
+		this.el.setAttribute("position", this.data.defaultPosition);
+		this.el.setAttribute("animation", {
+			property: "rotation",
+			to: "0 360 0",
+			dur: 5000,
+			loop: true,
+			easing: "linear",
+		});
 
-      // ตั้งค่าคุณสมบัติของ UFO
-      this.ufo.setAttribute("id", "throwing-ufo");
-      this.ufo.setAttribute("gltf-model", "#throwing-model");
-      this.ufo.setAttribute("scale", this.data.scale);
-      this.ufo.setAttribute("position", this.data.defaultPosition);
-      this.ufo.setAttribute("animation", {
-        property: "rotation",
-        to: "0 360 0",
-        dur: 5000,
+		const throwButton = document.getElementById("throwButton");
+		throwButton.addEventListener("click", () => this.throwObject());
+	},
 
-        loop: true,
-        easing: "linear",
-      });
+	startSway: function () {
+		if (!this.isThrown) {
+			const currentTime = Date.now();
+			const deltaTime = currentTime - this.lastUpdate;
 
-      // เพิ่ม UFO เข้าไปใน camera entity
-      const camera = document.querySelector("[camera]");
-      camera.appendChild(this.ufo);
+			const newX = Math.sin(currentTime * this.swaySpeed) * this.swayAmount;
+			this.defaultX = newX;
 
-      // เพิ่ม event listener สำหรับปุ่มโยน
-      setTimeout(() => {
-        const throwButton = document.getElementById("throwButton");
-        if (throwButton) {
-          throwButton.addEventListener("click", () => this.throwObject());
-        } else {
-          console.error("Throw button not found!");
-        }
-      }, 100); // รอ 100ms
-    });
-  },
+			const currentPos = this.el.getAttribute("position");
+			this.el.setAttribute(
+				"position",
+				`${newX} ${currentPos.y} ${currentPos.z}`
+			);
 
-  startSway: function () {
-    if (!this.isThrown) {
-      const currentTime = Date.now();
-      const deltaTime = currentTime - this.lastUpdate;
+			document.getElementById("x-distance").textContent = newX.toFixed(2);
 
-      // คำนวณตำแหน่ง x แบบ sine wave
-      const newX = Math.sin(currentTime * this.swaySpeed) * this.swayAmount;
-      this.defaultX = newX;
+			this.swayAnimation = requestAnimationFrame(() => this.startSway());
+			this.lastUpdate = currentTime;
+		}
+	},
 
-      if (this.ufo) {
-        const currentPos = this.ufo.getAttribute("position");
-        this.ufo.setAttribute(
-          "position",
-          `${newX} ${currentPos.y} ${currentPos.z}`
-        );
+	throwObject: function () {
+		if (this.isThrown) return;
 
-        // อัพเดทค่าแสดงผล x
-        document.getElementById("x-distance").textContent = newX.toFixed(2);
-      }
+		cancelAnimationFrame(this.swayAnimation);
+		this.count = true;
 
-      this.swayAnimation = requestAnimationFrame(() => this.startSway());
-      this.lastUpdate = currentTime;
-    }
-  },
+		const power = window.throwingPower.value;
+		this.initialVelocity = 15 * (power / 100);
 
-  throwObject: function () {
-    if (this.isThrown) return;
+		this.isThrown = true;
+		this.throwStartTime = Date.now();
 
-    // หยุดการแกว่งไปมา
-    cancelAnimationFrame(this.swayAnimation);
-    this.count = true;
+		this.animationLoop = requestAnimationFrame(() => this.updatePosition());
+	},
 
-    // ใช้ค่า power จากตัวแปร Global
-    const power = window.throwingPower.value;
-    this.initialVelocity = 15 * (power / 100);
+	updatePosition: function () {
+		if (!this.isThrown) return;
 
-    this.isThrown = true;
-    this.throwStartTime = Date.now();
+		const t = (Date.now() - this.throwStartTime) / 1000;
+		const angleRad = (this.angle * Math.PI) / 180;
 
-    // เริ่ม animation loop
-    this.animationLoop = requestAnimationFrame(() => this.updatePosition());
-  },
+		const v0 = this.initialVelocity;
+		const y =
+			this.defaultY +
+			(v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
+		const z = this.defaultZ + -v0 * Math.cos(angleRad) * t;
+		const x = this.defaultX;
 
-  updatePosition: function () {
-    if (!this.isThrown) return;
+		this.el.setAttribute("position", `${x} ${y} ${z}`);
 
-    const t = (Date.now() - this.throwStartTime) / 1000;
-    const angleRad = (this.angle * Math.PI) / 180;
+		document.getElementById("z-distance").textContent = z.toFixed(2);
+		document.getElementById("y-distance").textContent = y.toFixed(2);
+		document.getElementById("x-distance").textContent = x.toFixed(2);
 
-    const v0 = this.initialVelocity;
-    const y =
-      this.defaultY +
-      (v0 * Math.sin(angleRad) * t - 0.5 * this.gravity * t * t);
-    const z = this.defaultZ + -v0 * Math.cos(angleRad) * t;
-    const x = this.defaultX;
+		// เช็คระยะทางและเปลี่ยนสีห่วง
+		const ring = document.querySelector("#santa-model");
 
-    this.ufo.setAttribute("position", `${x} ${y} ${z}`);
+		const markerZ = window.markerDistance.z;
+		const markerY = window.markerDistance.y;
+		const markerX = window.markerDistance.x;
 
-    document.getElementById("z-distance").textContent = z.toFixed(2);
-    document.getElementById("y-distance").textContent = y.toFixed(2);
-    document.getElementById("x-distance").textContent = x.toFixed(2);
+		const toleranceZ = Math.abs(markerZ * 0.1);
+		const toleranceY = Math.abs(markerY * 0.1) + 0.2;
+		const toleranceX = 0.3;
 
-    // เช็คระยะทางและเปลี่ยนสีห่วง
-    const ring = document.querySelector("#santa-model");
+		const minZ = markerZ - toleranceZ;
+		const maxZ = markerZ + toleranceZ;
+		const minY = markerY - toleranceY;
+		const maxY = markerY + toleranceY;
+		const minX = markerX - toleranceX;
+		const maxX = markerX + toleranceX;
 
-    // ดึงค่าระยะห่างจริงจาก Global variable
-    const markerZ = window.markerDistance.z;
-    const markerY = window.markerDistance.y;
-    const markerX = window.markerDistance.x;
+		if (
+			z >= minZ &&
+			z <= maxZ &&
+			y >= minY &&
+			y <= maxY &&
+			x >= minX &&
+			x <= maxX &&
+			this.count
+		) {
+			const sound = document.querySelector("#success-sound");
+			sound.currentTime = 0;
+			sound.play();
 
-    // คำนวณช่วง tolerance สำหรับทุกแกน
-    const toleranceZ = Math.abs(markerZ * 0.1);
-    const toleranceY = Math.abs(markerY * 0.1) + 0.2;
-    const toleranceX = 0.3;
+			ring.setAttribute("material", "color: #00ff00");
+			ring.setAttribute("animation", {
+				property: "scale",
+				from: "0.6 0.6 0.6",
+				to: "0.8 0.8 0.8",
+				dur: 500,
+				easing: "easeOutQuad",
+			});
 
-    const minZ = markerZ - toleranceZ;
-    const maxZ = markerZ + toleranceZ;
-    const minY = markerY - toleranceY;
-    const maxY = markerY + toleranceY;
-    const minX = markerX - toleranceX;
-    const maxX = markerX + toleranceX;
+			setTimeout(() => {
+				ring.setAttribute("animation", {
+					property: "scale",
+					from: "0.8 0.8 0.8",
+					to: "0.6 0.6 0.6",
+					dur: 500,
+					easing: "easeInQuad",
+				});
+			}, 500);
 
-    // เช็คว่าทั้ง x, y และ z อยู่ในช่วง tolerance ของระยะห่างจริง
-    if (
-      z >= minZ &&
-      z <= maxZ &&
-      y >= minY &&
-      y <= maxY &&
-      x >= minX &&
-      x <= maxX &&
-      this.count
-    ) {
-      // เป่นเสียง
-      const sound = document.querySelector("#success-sound");
-      sound.currentTime = 0; // รีเซ็ตเสียงให้เล่นใหม่ได้ทันที
-      sound.play();
+			setTimeout(() => {
+				ring.setAttribute("material", "color: #ff0000");
+			}, 1000);
 
-      // เปลี่ยนสีและขยายวงแหวน
-      ring.setAttribute("material", "color: #00ff00");
-      ring.setAttribute("animation", {
-        property: "scale",
-        from: "0.6 0.6 0.6",
-        to: "0.8 0.8 0.8",
-        dur: 500,
-        easing: "easeOutQuad",
-      });
+			window.gameState.score += 3;
+			this.count = false;
+		}
 
-      // หลังจาก 500ms ให้หดกลับ
-      setTimeout(() => {
-        ring.setAttribute("animation", {
-          property: "scale",
-          from: "0.8 0.8 0.8",
-          to: "0.6 0.6 0.6",
-          dur: 500,
-          easing: "easeInQuad",
-        });
-      }, 500);
+		if (y < -10 || z < -30) {
+			this.isThrown = false;
+			this.count = false;
+			this.el.setAttribute("position", this.data.defaultPosition);
+			ring.setAttribute("material", "color: #ff0000");
+			cancelAnimationFrame(this.animationLoop);
 
-      // หลังจาก 1 วินาที กลับเป็นสีแดง
-      setTimeout(() => {
-        ring.setAttribute("material", "color: #ff0000");
-      }, 1000);
-
-      window.gameState.score += 3;
-      this.count = false;
-    }
-
-    // เช็คว่าจบการเคลื่อนที่หรือยัง
-    if (y < -10 || z < -30) {
-      this.isThrown = false;
-      this.count = false;
-      this.ufo.setAttribute("position", this.data.defaultPosition);
-      ring.setAttribute("material", "color: #ff0000");
-      cancelAnimationFrame(this.animationLoop);
-
-      //! เริ่มการแกว่งใหม่
-      // this.startSway();
-
-      // รีเซ็ตค่าแสดงผลโดยใช้ค่าจาก defaultPosition
-      document.getElementById("z-distance").textContent =
-        this.defaultZ.toFixed(2);
-      document.getElementById("y-distance").textContent =
-        this.defaultY.toFixed(2);
-      document.getElementById("x-distance").textContent =
-        this.defaultX.toFixed(2);
-    } else {
-      this.animationLoop = requestAnimationFrame(() => this.updatePosition());
-    }
-  },
+			document.getElementById("z-distance").textContent =
+				this.defaultZ.toFixed(2);
+			document.getElementById("y-distance").textContent =
+				this.defaultY.toFixed(2);
+			document.getElementById("x-distance").textContent =
+				this.defaultX.toFixed(2);
+		} else {
+			this.animationLoop = requestAnimationFrame(() => this.updatePosition());
+		}
+	},
 });

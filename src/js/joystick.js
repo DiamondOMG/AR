@@ -11,18 +11,10 @@ class Joystick {
 		this.decreasingPower = true;
 		this.power = 0;
 
-		this.createHiddenButton();
 		this.createButtonUI();
 		this.createPowerBar();
 		this.createPowerDisplay();
 		this.addEventListeners();
-	}
-
-	createHiddenButton() {
-		const hiddenButton = document.createElement("button");
-		hiddenButton.id = "throwButton";
-		hiddenButton.style.display = "none";
-		document.body.appendChild(hiddenButton);
 	}
 
 	createButtonUI() {
