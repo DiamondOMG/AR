@@ -1,5 +1,3 @@
-import throwXYZ$ from "./globalState";
-
 AFRAME.registerComponent("throw-model", {
 	schema: {
 		defaultPosition: { default: "0 -0.5 -2" },
@@ -16,7 +14,7 @@ AFRAME.registerComponent("throw-model", {
 		// แยกค่าพิกัดเริ่มต้นจาก defaultPosition
 		const [x, y, z] = this.data.defaultPosition.split(" ").map(Number);
 		this.defaultX = x;
-		this.defaultY = y; //!ใช้เช็ค offset ที่เกินมา
+		this.defaultY = y;
 		this.defaultZ = z;
 
 		this.swayAmount = 0.5;
